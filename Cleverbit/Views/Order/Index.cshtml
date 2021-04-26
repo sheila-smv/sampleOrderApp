@@ -1,0 +1,92 @@
+﻿@{
+    ViewBag.Title = "Products Page";
+}
+
+<div class="row">
+    <div class="col-sm-6">
+        <table id="productTable" class="table table-bordered table-condensed table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Price</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $(document).on('click', '.order', function (event) {
+            var productId = $(this).attr('id');
+            order(productId);
+        });
+
+        function productInsertRow(item) {
+            
+            var rows = "<tr>" +
+                "<td>" + item.Name + (item.IsPopular ? " <small style=\"color:green\">Popular Product</small>" : "" )+ "</td>" +
+                "<td>" + item.Description + "</td>" +
+                "<td>" + item.Price + "</td>" +
+                "<td><button class=\"order\" id=\""+ item.Id + "\">Order Now</button></td>" +
+                "</tr>";
+            $('#productTable tbody').append(rows);  
+        }
+
+        function productListSuccess(products) {
+            $('#productTable tbody').html('');
+            $.each(products, function (index, product) {
+                // Add a row to the table
+                productInsertRow(product);
+            });
+        }
+
+        function handleException(request, message, error) {
+            alert(error);
+        }
+
+        function productList() {
+            // Call Web API to get a list of products
+            $.ajax({
+                url: '/Product/GetProducts',
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    productListSuccess(response.products);
+                },
+                error: function (request, message, error) {
+                    handleException(request, message, error);
+                }
+            });
+        }
+
+        function order(id) {
+            $.ajax({
+                url: "/Order/SaveOrder?productId=" + id,
+                type: 'GET',
+                success: function (response) {
+                    alert(response.Message);
+                },
+                error: function (request, message, error) {
+                    handleException(request, message, error);
+                }
+            });
+        }
+
+        productList();
+
+        var timer = setInterval(heartbeat, 30000);
+
+        function heartbeat() {
+            productList();
+        }
+    });
+
+    $(window).on('beforeunload', function () {
+        
+    });
+</script>
